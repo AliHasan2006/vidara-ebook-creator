@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Book, Chapter } from '../types';
-import { apiClient, bookEndpoints, aiEndpoints } from '../utils/api';
+import { apiClient, bookEndpoints, aiEndpoints, exportEndpoints } from '../utils/api';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { ChapterSidebar } from '../components/editor/ChapterSidebar';
 import { MarkdownEditor } from '../components/editor/MarkdownEditor';
@@ -99,7 +99,7 @@ export const EditorPage: React.FC = () => {
   };
 
   const handleChapterDelete = async (chapterId: string) => {
-    if (!confirm('Are you sure you want to delete this chapter?')) return;
+    if (!window.confirm('Are you sure you want to delete this chapter?')) return;
 
     try {
       // Update the book chapters array without the deleted chapter
@@ -297,7 +297,9 @@ export const EditorPage: React.FC = () => {
               variant="outline"
               size="sm"
               icon={<Cog6ToothIcon className="h-4 w-4" />}
-            />
+            >
+              Settings
+            </Button>
           </div>
         </div>
       </header>
@@ -335,7 +337,7 @@ export const EditorPage: React.FC = () => {
               onAIGenerate={handleAIGenerate}
               onRewrite={handleRewrite}
               isLoading={isSaving}
-              lastSaveTime={lastSave}
+              lastSaveTime={lastSave || undefined}
             />
           ) : (
             <div className="h-full flex items-center justify-center">
