@@ -1,0 +1,36 @@
+{
+  "name": "vidara-ebook-creator",
+  "version": "1.0.0",
+  "description": "AI-powered eBook creation platform with luxury minimalist design",
+  "main": "server/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "nodemon server/index.js",
+    "client": "cd client && npm start",
+    "build": "cd client && npm run build",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "helmet": "^7.0.0",
+    "cors": "^2.8.5",
+    "cookie-parser": "^1.4.6",
+    "zod": "^3.22.2",
+    "@google/generative-ai": "^0.1.0",
+    "docx": "^8.2.2",
+    "puppeteer": "^21.1.1",
+    "express-rate-limit": "^6.10.0",
+    "express-validator": "^7.0.1",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "concurrently": "^8.2.0"
+  },
+  "keywords": ["ebook", "ai", "mern", "publishing", "writing"],
+  "author": "Vidara Team",
+  "license": "MIT"
+}
