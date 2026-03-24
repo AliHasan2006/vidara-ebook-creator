@@ -93,7 +93,7 @@ export const ProfilePage: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8"
         >
-          <Button
+          {/* <Button
             variant="ghost"
             size="sm"
             as={Link}
@@ -101,7 +101,7 @@ export const ProfilePage: React.FC = () => {
             icon={<ArrowLeftIcon className="h-4 w-4" />}
           >
             Back to Dashboard
-          </Button>
+          </Button> */}
           <h1 className="text-3xl font-bold text-gray-900 font-space mt-4 mb-2">
             Profile Settings
           </h1>
