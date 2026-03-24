@@ -32,7 +32,7 @@ export const LoginForm: React.FC = () => {
     try {
       await login(data.email, data.password);
     } catch (error) {
-      // Error is handled by the API client
+      // Error is handled by the API client and AuthContext
     } finally {
       setIsLoading(false);
     }

@@ -1,13 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Book, Chapter } from '../types';
+import { Book } from '../types';
 import { apiClient, bookEndpoints, aiEndpoints, exportEndpoints } from '../utils/api';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { ChapterSidebar } from '../components/editor/ChapterSidebar';
 import { MarkdownEditor } from '../components/editor/MarkdownEditor';
 import { Button } from '../components/common/Button';
 import { SkeletonLoader } from '../components/common/SkeletonLoader';
+import { ExportModal } from '../components/export/ExportModal';
 import toast from 'react-hot-toast';
 import {
   ArrowLeftIcon,
@@ -23,13 +24,15 @@ export const EditorPage: React.FC = () => {
   const [book, setBook] = useState<Book | null>(null);
   const [selectedChapterId, setSelectedChapterId] = useState<string>('');
   const [currentContent, setCurrentContent] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
+  const [lastSave, setLastSave] = useState<Date | null>(null);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const selectedChapter = book?.chapters.find(ch => ch._id === selectedChapterId);
 
   // Auto-save functionality
-  const { triggerSave, lastSave } = useAutoSave({
+  const { triggerSave, lastSave: autoSaveLastSave } = useAutoSave({
     bookId: bookId!,
     data: { chapters: book?.chapters },
     onSave: () => {
@@ -42,22 +45,7 @@ export const EditorPage: React.FC = () => {
     delay: 2000,
   });
 
-  useEffect(() => {
-    if (!bookId) {
-      navigate('/dashboard');
-      return;
-    }
-
-    loadBook();
-  }, [bookId, navigate]);
-
-  useEffect(() => {
-    if (selectedChapter) {
-      setCurrentContent(selectedChapter.content);
-    }
-  }, [selectedChapter]);
-
-  const loadBook = async () => {
+  const loadBook = useCallback(async () => {
     try {
       const response = await apiClient.get(bookEndpoints.book(bookId!));
       setBook(response.book);
@@ -71,6 +59,25 @@ export const EditorPage: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  }, [bookId, navigate]);
+
+  useEffect(() => {
+    if (!bookId) {
+      navigate('/dashboard');
+      return;
+    }
+
+    loadBook();
+  }, [bookId, navigate, loadBook]);
+
+  useEffect(() => {
+    if (selectedChapter) {
+      setCurrentContent(selectedChapter.content);
+    }
+  }, [selectedChapter]);
+
+  const handleExport = (format: 'pdf' | 'docx') => {
+    setShowExportModal(true);
   };
 
   const handleChapterSelect = (chapterId: string) => {
@@ -212,16 +219,6 @@ export const EditorPage: React.FC = () => {
     }
   };
 
-  const handleExport = async (format: 'pdf' | 'docx') => {
-    try {
-      const endpoint = format === 'pdf' ? exportEndpoints.pdf(bookId!) : exportEndpoints.docx(bookId!);
-      window.open(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}${endpoint}`, '_blank');
-      toast.success(`Exporting to ${format.toUpperCase()}...`);
-    } catch (error) {
-      toast.error(`Failed to export to ${format.toUpperCase()}`);
-    }
-  };
-
   if (isLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-gray-50">
@@ -250,8 +247,8 @@ export const EditorPage: React.FC = () => {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="flex items-center space-x-4">
             <Button
               variant="ghost"
@@ -262,14 +259,14 @@ export const EditorPage: React.FC = () => {
               Back to Dashboard
             </Button>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 font-space">{book.title}</h1>
+              <h1 className="text-xl lg:text-2xl font-bold text-gray-900 font-space">{book.title}</h1>
               {book.subtitle && (
                 <p className="text-sm text-gray-600">{book.subtitle}</p>
               )}
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -305,12 +302,12 @@ export const EditorPage: React.FC = () => {
       </header>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         <motion.div
           initial={{ width: 0, opacity: 0 }}
-          animate={{ width: '320px', opacity: 1 }}
+          animate={{ width: 'auto', opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="flex-shrink-0"
+          className="lg:w-80 xl:w-96 flex-shrink-0"
         >
           <ChapterSidebar
             chapters={book.chapters}
@@ -326,7 +323,7 @@ export const EditorPage: React.FC = () => {
           initial={{ x: 20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.1 }}
-          className="flex-1"
+          className="flex-1 flex flex-col"
         >
           {selectedChapter ? (
             <MarkdownEditor
@@ -352,6 +349,14 @@ export const EditorPage: React.FC = () => {
           )}
         </motion.div>
       </div>
+
+      {/* Export Modal */}
+      {showExportModal && book && (
+        <ExportModal
+          book={book}
+          onClose={() => setShowExportModal(false)}
+        />
+      )}
     </div>
   );
 };

@@ -1,10 +1,14 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { LandingPage } from './pages/LandingPage';
-import { EditorPage } from './pages/EditorPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { LazyDashboardPage, LazyEditorPage, LazyCreateBookPage, LazyProfilePage } from './utils/lazyLoad';
 import { LoginForm } from './components/auth/LoginForm';
+import { ErrorBoundary } from './components/common/ErrorBoundary';
+import { EditorSuspense, DashboardSuspense, ModalSuspense } from './components/common/SuspenseWrapper';
+import { LoadingSpinner } from './components/common/LoadingSpinner';
 import { motion } from 'framer-motion';
 
 // Protected Route Component
@@ -46,7 +50,7 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 // Login Page
-const LoginPage: React.FC = () => {
+const LoginPageComponent: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-off-white to-white flex items-center justify-center p-4">
       <LoginForm />
@@ -54,98 +58,60 @@ const LoginPage: React.FC = () => {
   );
 };
 
-// Dashboard Page (placeholder)
-const DashboardPage: React.FC = () => {
-  return (
-    <div className="min-h-screen bg-off-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-3xl font-bold font-space text-gray-900 mb-8">Dashboard</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Placeholder for book cards */}
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold mb-2">Sample Book</h3>
-            <p className="text-gray-600 mb-4">Click to start editing</p>
-            <button 
-              onClick={() => window.location.href = '/editor/sample-book-id'}
-              className="text-deep-purple hover:text-purple-700 font-medium"
-            >
-              Open Editor →
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Register Page (placeholder)
-const RegisterPage: React.FC = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-off-white to-white flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
-        <h2 className="text-2xl font-bold font-space text-gray-900 mb-6">Create Account</h2>
-        <p className="text-gray-600 mb-6">Registration page coming soon...</p>
-        <button 
-          onClick={() => window.location.href = '/login'}
-          className="w-full bg-deep-purple text-white py-2 px-4 rounded-lg hover:bg-purple-700 transition-colors"
-        >
-          Back to Login
-        </button>
-      </div>
-    </div>
-  );
-};
-
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
-            <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-            <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+    <ErrorBoundary>
+      <AuthProvider>
+        <Router>
+          <div className="App">
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<PublicRoute><LandingPage /></PublicRoute>} />
+              <Route path="/login" element={<PublicRoute><LoginPageComponent /></PublicRoute>} />
+              <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+              
+              {/* Protected Routes */}
+              <Route path="/dashboard" element={<ProtectedRoute><DashboardSuspense><LazyDashboardPage /></DashboardSuspense></ProtectedRoute>} />
+              <Route path="/create-book" element={<ProtectedRoute><ModalSuspense><LazyCreateBookPage /></ModalSuspense></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><ModalSuspense><LazyProfilePage /></ModalSuspense></ProtectedRoute>} />
+              <Route path="/editor/:bookId" element={<ProtectedRoute><EditorSuspense><LazyEditorPage /></EditorSuspense></ProtectedRoute>} />
+              
+              {/* Demo Page */}
+              <Route path="/demo" element={<LandingPage />} />
+              
+              {/* Catch all */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
             
-            {/* Protected Routes */}
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-            <Route path="/editor/:bookId" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
-            
-            {/* Demo Page */}
-            <Route path="/demo" element={<LandingPage />} />
-            
-            {/* Catch all */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-          
-          {/* Global Toast Notifications */}
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#363636',
-                color: '#fff',
-              },
-              success: {
-                duration: 3000,
-                iconTheme: {
-                  primary: '#6D28D9',
-                  secondary: '#fff',
+            {/* Global Toast Notifications */}
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                duration: 4000,
+                style: {
+                  background: '#363636',
+                  color: '#fff',
                 },
-              },
-              error: {
-                duration: 5000,
-                iconTheme: {
-                  primary: '#EF4444',
-                  secondary: '#fff',
+                success: {
+                  duration: 3000,
+                  iconTheme: {
+                    primary: '#6D28D9',
+                    secondary: '#fff',
+                  },
                 },
-              },
-            }}
-          />
-        </div>
-      </Router>
-    </AuthProvider>
+                error: {
+                  duration: 5000,
+                  iconTheme: {
+                    primary: '#EF4444',
+                    secondary: '#fff',
+                  },
+                },
+              }}
+            />
+          </div>
+        </Router>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 

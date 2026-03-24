@@ -76,12 +76,12 @@ export const LandingPage: React.FC = () => {
               <span className="text-deep-purple font-medium">✨ AI-Powered Authorship</span>
             </div>
             
-            <h1 className="text-5xl md:text-7xl font-bold font-space text-gray-900 mb-6">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold font-space text-gray-900 mb-6">
               Architect Your
               <span className="block text-deep-purple">Legacy</span>
             </h1>
             
-            <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
+            <p className="text-lg md:text-xl lg:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto">
               Transform your ideas into published masterpieces with AI-powered writing tools, 
               professional editing, and seamless publishing.
             </p>
@@ -145,7 +145,7 @@ export const LandingPage: React.FC = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -153,7 +153,7 @@ export const LandingPage: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="text-center p-8 rounded-2xl border border-gray-200 hover:shadow-lg transition-shadow"
+                className="text-center p-6 lg:p-8 rounded-2xl border border-gray-200 hover:shadow-lg transition-shadow"
               >
                 <div className="text-deep-purple mb-4 flex justify-center">
                   {feature.icon}

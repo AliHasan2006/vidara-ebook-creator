@@ -1,12 +1,18 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Chapter } from '../../types';
 import { Button } from '../common/Button';
+import { LoadingSpinner } from '../common/LoadingSpinner';
+import { AIDraftPanel } from '../ai/AIDraftPanel';
+import toast from 'react-hot-toast';
 import {
   EyeIcon,
   CodeBracketIcon,
+  DocumentTextIcon,
   SparklesIcon,
+  ArrowPathIcon,
   DocumentDuplicateIcon,
+  ClipboardIcon,
 } from '@heroicons/react/24/outline';
 
 interface MarkdownEditorProps {
@@ -18,6 +24,7 @@ interface MarkdownEditorProps {
   onRewrite: (text: string, instruction: string) => void;
   isLoading?: boolean;
   lastSaveTime?: Date;
+  previousChapters?: Chapter[];
 }
 
 export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
@@ -29,10 +36,17 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
   onRewrite,
   isLoading = false,
   lastSaveTime,
+  previousChapters = [],
 }) => {
   const [viewMode, setViewMode] = useState<'edit' | 'preview' | 'split'>('edit');
   const [selectedText, setSelectedText] = useState('');
+  const [showAIDraftPanel, setShowAIDraftPanel] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleAIDraftGenerated = (generatedContent: string) => {
+    onChange(generatedContent);
+    onSave();
+  };
 
   const handleTextSelection = useCallback(() => {
     const textarea = textareaRef.current;
@@ -156,6 +170,14 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
 
           {/* AI Actions */}
           <div className="flex items-center space-x-2 border-l pl-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAIDraftPanel(true)}
+              icon={<SparklesIcon className="h-4 w-4" />}
+            >
+              AI Draft
+            </Button>
             <Button
               variant="secondary"
               size="sm"
@@ -311,6 +333,16 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
           </div>
         )}
       </div>
+
+      {/* AI Draft Panel */}
+      {showAIDraftPanel && (
+        <AIDraftPanel
+          chapter={chapter}
+          previousChapters={previousChapters}
+          onDraftGenerated={handleAIDraftGenerated}
+          onClose={() => setShowAIDraftPanel(false)}
+        />
+      )}
     </div>
   );
 };
